@@ -10,7 +10,7 @@ import json
 # mqtt configuration
 server = "mioty-server-1.iis.fraunhofer.de"
 port = 8883
-topic = 'devices/stud/febris/+/FC-A8-4A-03-00-00-0E-66/alarmstatus'
+topic = 'mioty/70-b3-d5-67-70-0e-ff-03/fc-a8-4a-03-00-00-0e-67/uplink'
 #topic schemes: devices/<customerTransformedName>/<deviceBaseType>/<deviceType>/<deviceId>/up
 
 # MQTT credentials
@@ -23,29 +23,42 @@ def on_message(client, userdata, message):
     # new mioty telegram received and print topic
     print("received topic:", message.topic) 
     #print message as Json String 
-    print(" ", message.payload) 
-    
+    receivedMessage = str(message.payload.decode())
+    print("Received message: " + receivedMessage)
+
 
 # callback function, called when broker responds to connection request
 def on_connect(client,userdata,flag,rc): 
-    client.subscribe(topic, qos=2)    
-    print("connect")
-         
+    print("connected")
+    client.subscribe(topic, qos=2) #subscribe to topic)    
+     
 
 # debugging function
 def on_log(client, userdata, level, buf):
     print("log: ",buf)
-    
-# creates new client object
-client = mqtt.Client("mioty")
-# sets username and password
-client.username_pw_set(username, password)
+
+def user_identify(client, username, password):
+    # sets username and password
+    client.username_pw_set(username, password)
+    # Path to the client certificate and key files 
+    cert_file = None
+    key_file = None
+    # Create an SSL context and load the client certificate and key files
+    ssl_context = ssl.create_default_context()
+    if cert_file is not None and key_file is not None:
+        ssl_context.load_cert_chain(cert_file, key_file)  
+    #Set the SSL context for secure connection
+    client.tls_set_context(context=ssl_context)
+
+# creates new client object 
+client = mqtt.Client()   
+client.user_identify = user_identify
 # functions get assigned to the actual callbacks
 client.on_connect = on_connect
-# miotyClient.on_log = on_log
-client.on_message = on_message
+client.on_message = on_message       
+
 # connects client to broker
-client.connect(server, port, 60) 
+client.connect(server, port) 
 
 try:
     client.loop_forever()
