@@ -2,6 +2,8 @@ from __future__ import print_function
 import paho.mqtt.client as mqtt
 import json
 import ssl
+import pandas as pd
+from contextlib import redirect_stdout
 
 # Create a new MQTT client instance
 client = mqtt.Client()
@@ -35,7 +37,6 @@ if cert_file is not None and key_file is not None:
 # Set the SSL context for secure connection
 client.tls_set_context(context=ssl_context)
 
-
 # Connect to the MQTT broker
 if client.connect(broker_address, broker_port) != 0:
     print("Could not connect to MQTT broker!")
@@ -43,13 +44,18 @@ if client.connect(broker_address, broker_port) != 0:
     
 receivedMessage = ""
 
+
 # Callback function that will be called when a new message is received
 def on_message(client, userdata, message):
     # new mioty telegram received
-    print("Received Topic: " + message.topic)
+    #print("Received Topic: " + message.topic)
     # print message as json
+    #message.to_json(r'/home/codespace/.python/Febris-Sensor-CO2/data_test.json')
     #print("Received Message: " + message.payload)
+    receivedMessage_json = json.loads(message.payload.decode("utf-8"))
     receivedMessage = str(message.payload.decode())
+    with open(r'/home/codespace/.python/Febris-Sensor-CO2/data_test.json', 'w') as f:
+        json.dump(receivedMessage_json, f)
     print("Received message: " + receivedMessage)
 
 # Set the callback function for new messages
@@ -57,9 +63,6 @@ client.on_message = on_message
 
 # Subscribe to the topic
 client.subscribe(topic, qos=qos_level)
-
-# Publish a message to the topic with QoS 1
-#client.publish(publish_topic, receivedMessage, qos=qos_level)
 
 # Start the MQTT client loop to listen for new messages
 try:

@@ -1,17 +1,13 @@
-# allows to use features from possibly higher Python versions by backporting them into the current interpreter
 from __future__ import print_function
-# imports client class, necessary for important paho functions and features 
 import paho.mqtt.client as mqtt
-# if required, further security functions such as encryption of the connection or identity verification can be added
-import ssl
-# allows among other things to decode Jason coded strings
 import json
+import ssl
 
 # mqtt configuration
-server = "mioty-server-1.iis.fraunhofer.de"
+adresse = "mioty-server-1.iis.fraunhofer.de"
 port = 8883
+qos_level = 2
 topic = 'mioty/70-b3-d5-67-70-0e-ff-03/fc-a8-4a-03-00-00-0e-67/uplink'
-#topic schemes: devices/<customerTransformedName>/<deviceBaseType>/<deviceType>/<deviceId>/up
 
 # MQTT credentials
 username = "stud"       
@@ -30,7 +26,7 @@ def on_message(client, userdata, message):
 # callback function, called when broker responds to connection request
 def on_connect(client,userdata,flag,rc): 
     print("connected")
-    client.subscribe(topic, qos=2) #subscribe to topic)    
+    client.subscribe(topic, qos=2) #subscribe to topic)   
      
 
 # debugging function
@@ -38,13 +34,14 @@ def on_log(client, userdata, level, buf):
     print("log: ",buf)
 
 def user_identify(client, username, password):
-    # sets username and password
-    client.username_pw_set(username, password)
     # Path to the client certificate and key files 
     cert_file = None
     key_file = None
     # Create an SSL context and load the client certificate and key files
     ssl_context = ssl.create_default_context()
+    # Set the username and password
+    if username is not None and password is not None:
+        client.username_pw_set(username, password)
     if cert_file is not None and key_file is not None:
         ssl_context.load_cert_chain(cert_file, key_file)  
     #Set the SSL context for secure connection
@@ -55,13 +52,18 @@ client = mqtt.Client()
 client.user_identify = user_identify
 # functions get assigned to the actual callbacks
 client.on_connect = on_connect
-client.on_message = on_message       
+client.on_message = on_message   
+
+# Subscribe to the topic
+client.subscribe(topic, qos=qos_level)    
 
 # connects client to broker
-client.connect(server, port) 
+client.connect(adresse, port) 
 
+# Start the MQTT client loop to listen for new messages
 try:
+    print("Press CTRL+C to exit")
     client.loop_forever()
-except KeyboardInterrupt: 
+except  KeyboardInterrupt: 
     client.loop_stop() 
     client.disconnect()
