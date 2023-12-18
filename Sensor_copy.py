@@ -58,13 +58,46 @@ def filter(data):
 
 # Callback function that will be called when a new message is received
 def on_message(client, userdata, message):
-    # new mioty telegram received and print topic
-    receivedMessage_json = json.loads(message.payload.decode("utf-8"))
-    result = filter(receivedMessage_json)
-    receivedMessage = str(message.payload.decode())
-    with open(r'/home/codespace/.python/Febris-Sensor-CO2/data_test_2.json', 'w') as f:
-        json.dump(result, f)
-    #print("Received message: " + receivedMessage)
+    try:
+        # Assuming the message payload is a JSON string
+        receivedMessage_json = json.loads(message.payload.decode("utf-8"))
+
+        # Extract individual components from the received JSON
+        # Make sure these keys match with your JSON structure
+        alarm = json.dumps(receivedMessage_json.get("alarm", {}))
+        temperature = json.dumps(receivedMessage_json.get("temperature", {}))
+        humidity = json.dumps(receivedMessage_json.get("humidity", {}))
+        co2 = json.dumps(receivedMessage_json.get("co2", {}))
+        pressure = json.dumps(receivedMessage_json.get("pressure", {}))
+        battery = json.dumps(receivedMessage_json.get("battery", {}))
+
+        # Connect to the MySQL database
+        mydb = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="123abc",
+            database="your_database_name"
+        )
+
+        mycursor = mydb.cursor()
+
+        # Insert data into the data_log table
+        sql = """INSERT INTO data_log (sensor, alarm, temperature, humidity, co2, pressure, battery) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        val = (1, alarm, temperature, humidity, co2, pressure, battery) # Assuming '1' is your sensor ID
+        mycursor.execute(sql, val)
+
+        mydb.commit()
+    except json.JSONDecodeError:
+        print("Error decoding JSON from the message payload.")
+    except mysql.connector.Error as err:
+        print(f"MySQL Error: {err}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        if mydb.is_connected():
+            mycursor.close()
+            mydb.close()
 
 # Set the callback function for new messages
 client.on_message = on_message
