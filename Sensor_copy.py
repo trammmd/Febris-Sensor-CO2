@@ -4,6 +4,7 @@ import json
 import ssl
 import pandas as pd
 from contextlib import redirect_stdout
+import mysql.connector
 
 # Create a new MQTT client instance
 client = mqtt.Client()
@@ -58,6 +59,8 @@ def filter(data):
 
 # Callback function that will be called when a new message is received
 def on_message(client, userdata, message):
+    #mydb = None
+    #mycursor = None
     try:
         # Assuming the message payload is a JSON string
         receivedMessage_json = json.loads(message.payload.decode("utf-8"))
@@ -75,8 +78,8 @@ def on_message(client, userdata, message):
         mydb = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="123abc",
-            database="your_database_name"
+            password="***",
+            database="sensors_db"
         )
 
         mycursor = mydb.cursor()
@@ -95,8 +98,9 @@ def on_message(client, userdata, message):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
     finally:
-        if mydb.is_connected():
+        if mycursor:
             mycursor.close()
+        if mydb:
             mydb.close()
 
 # Set the callback function for new messages
