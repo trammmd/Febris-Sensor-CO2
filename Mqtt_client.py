@@ -2,22 +2,20 @@ from __future__ import print_function
 import paho.mqtt.client as mqtt
 import json
 import ssl
-import pandas as pd
-from contextlib import redirect_stdout
 import mysql.connector
 
 # Create a new MQTT client instance
 client = mqtt.Client()
 
 # MQTT broker address and port
-broker_address = "###mioty-server-1.iis.fraunhofer.de"
+broker_address = "broker_address"
 broker_port = 8883
     
 # MQTT credentials
-username = "stud"       
-password = "###"       
+username = "username"       
+password = "password"       
 
-# Set the username and password (
+# Set the username and password 
 if username is not None and password is not None:
     client.username_pw_set(username, password)
 
@@ -44,8 +42,8 @@ if client.connect(broker_address, broker_port) != 0:
     
 receivedMessage = ""
 
+# Function to filter the data, which will be saved it to database
 def filter(data):
-    
     # Dictionary to store the filtered data
     filtered_data = {}
 
@@ -59,14 +57,13 @@ def filter(data):
 
 # Callback function that will be called when a new message is received
 def on_message(client, userdata, message):
-    #mydb = None
-    #mycursor = None
+    mydb = None
+    mycursor = None
     try:
-        # Assuming the message payload is a JSON string
+        # Message payload as JSON string
         receivedMessage_json = json.loads(message.payload.decode("utf-8"))
 
         # Extract individual components from the received JSON
-        # Make sure these keys match with your JSON structure
         alarm = json.dumps(receivedMessage_json.get("alarm", {}))
         temperature = json.dumps(receivedMessage_json.get("temperature", {}))
         humidity = json.dumps(receivedMessage_json.get("humidity", {}))
@@ -78,7 +75,7 @@ def on_message(client, userdata, message):
         mydb = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="***",
+            password="password",
             database="sensors_db"
         )
 
@@ -90,7 +87,9 @@ def on_message(client, userdata, message):
         val = (1, alarm, temperature, humidity, co2, pressure, battery) # Assuming '1' is your sensor ID
         mycursor.execute(sql, val)
 
+        # Commit the changes to the database
         mydb.commit()
+    # Handle exceptions and close connections 
     except json.JSONDecodeError:
         print("Error decoding JSON from the message payload.")
     except mysql.connector.Error as err:
