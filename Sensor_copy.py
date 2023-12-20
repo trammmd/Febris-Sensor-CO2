@@ -10,12 +10,12 @@ import mysql.connector
 client = mqtt.Client()
 
 # MQTT broker address and port
-broker_address = "mioty-server-1.iis.fraunhofer.de"
+broker_address = "###mioty-server-1.iis.fraunhofer.de"
 broker_port = 8883
     
 # MQTT credentials
 username = "stud"       
-password = "mioty$stud"       
+password = "###"       
 
 # Set the username and password (
 if username is not None and password is not None:
