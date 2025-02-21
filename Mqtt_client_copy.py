@@ -9,19 +9,19 @@ from contextlib import redirect_stdout
 client = mqtt.Client()
 
 # MQTT broker address and port
-broker_address = "mioty-server-1.iis.fraunhofer.de"
+broker_address = ""
 broker_port = 8883
     
 # MQTT credentials
 username = "stud"       
-password = "mioty$stud"       
+password = ""       
 
 # Set the username and password (
 if username is not None and password is not None:
     client.username_pw_set(username, password)
 
 # MQTT topic to subscribe to
-topic = "mioty/70-b3-d5-67-70-0e-ff-03/fc-a8-4a-03-00-00-0e-67/uplink"
+topic = ""
 qos_level = 2
 
 # Path to the client certificate and key files 
